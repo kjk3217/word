@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>모아모아 맞추기</title>
+
+  <!-- 공통 폰트 & 라이브러리 -->
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
+  <!-- 분리한 스타일 -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header><h1>모아모아 맞추기</h1></header>
+
+  <!-- 홈 -->
+  <div class="container" id="home">
+    <button id="btn-start">게임 시작</button>
+    <button id="btn-admin">문제 관리</button>
+  </div>
+
+  <!-- 게임 -->
+  <div class="container" id="game-area" style="display:none;flex-direction:column;">
+    <div id="question"></div>
+    <div id="answer-area"></div>
+    <div id="letter-pool"></div>
+    <button id="btn-exit" style="margin-top:3rem;">끝내기</button>
+  </div>
+
+  <!-- 관리자 -->
+  <div id="admin-area" style="display:none;">
+    <h2 class="title">문제 관리</h2>
+    <form id="problem-form">
+      <input type="text" id="inp-question" placeholder="문제(질문)" required />
+      <input type="text" id="inp-answer"   placeholder="정답(단어)" required />
+      <button type="submit">저장</button>
+      <button type="button" id="btn-back">홈으로</button>
+    </form>
+    <ul id="problem-list"></ul>
+  </div>
+
+  <!-- 모달 -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <div id="modal-text">정답!</div>
+      <button id="modal-btn">확인</button>
+    </div>
+  </div>
+
+  <footer><small>© 2025 모아모아 맞추기</small></footer>
+
+  <!-- 분리한 스크립트 -->
+  <script src="app.js"></script>
+</body>
+</html>
