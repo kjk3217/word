@@ -1,57 +1,124 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>모아모아 맞추기</title>
-
-  <!-- 공통 폰트 & 라이브러리 -->
-  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-
-  <!-- 분리한 스타일 -->
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    :root{--pink:#FFB6C1;--yellow:#FFD93D;--blue:#7BDFF2;--green:#75E6A6;--red:#FF7676;}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Black Han Sans',sans-serif;background:var(--blue);color:#333;display:flex;flex-direction:column;min-height:100vh}
+    header,footer{background:var(--pink);text-align:center;padding:1rem}
+    h1{font-size:4.2rem}
+    button{font-family:'Black Han Sans',sans-serif;font-size:2.1rem;padding:1rem 2.6rem;border:none;border-radius:1.4rem;color:#333;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.15);transition:.2s}
+    button:hover{transform:translateY(-4px);box-shadow:0 8px 0 rgba(0,0,0,.15)}
+    #btn-start{background:linear-gradient(135deg,var(--yellow),#FFC93C)}
+    #btn-admin{background:linear-gradient(135deg,var(--green),#40C97E)}
+    #btn-exit{background:linear-gradient(135deg,var(--red),#FF5555)}
+    .small-btn{font-size:1.4rem;padding:.5rem 1.2rem;box-shadow:none}
+    .edit-btn{background:linear-gradient(135deg,#8EC5FC,#6E8BFF)}
+    .delete-btn{background:linear-gradient(135deg,var(--red),#FF5555)}
+    .container{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    #home{gap:2.4rem}
+    #letter-pool,#answer-area{display:flex;flex-wrap:wrap;gap:1.2rem;justify-content:center;margin-top:2.4rem;min-height:6.5rem}
+    #answer-area{border:5px dashed var(--pink);border-radius:1.6rem;padding:1rem 2rem;background:rgba(255,255,255,.35)}
+    .letter{width:6rem;height:6rem;background:#fff;border:5px solid var(--pink);border-radius:1.2rem;display:flex;align-items:center;justify-content:center;font-size:3.8rem;user-select:none}
+    .letter.sortable-ghost,.letter.sortable-chosen{box-shadow:none;transform:scale(1)}.letter.sortable-ghost{opacity:.5;border-style:dotted}
+    #question{font-size:3.8rem;text-align:center;margin-top:1.6rem}
+    /* admin */
+    #admin-area{max-width:700px;width:94%;margin:auto;display:none}
+    #admin-area form{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin-bottom:1.4rem}
+    #admin-area input{flex:1 1 280px;font-size:1.6rem;padding:.6rem;border:3px solid var(--pink);border-radius:.8rem}
+    #admin-area form button{background:linear-gradient(135deg,var(--yellow),#FFC93C)}
+    #btn-back{background:linear-gradient(135deg,var(--red),#FF7676)}
+    #problem-list li{list-style:none;background:#fff;margin:.6rem 0;padding:.6rem;border-radius:.8rem;font-size:1.6rem;display:flex;justify-content:space-between;align-items:center}
+    .btn-group{display:flex;gap:.5rem}
+    /* modal */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;visibility:hidden;opacity:0;transition:.3s;z-index:1000}
+    .modal.show{visibility:visible;opacity:1}
+    .modal-content{background:#fff;padding:3rem 4rem;border-radius:2rem;text-align:center;font-size:3.2rem}
+  </style>
 </head>
 <body>
   <header><h1>모아모아 맞추기</h1></header>
-
-  <!-- 홈 -->
   <div class="container" id="home">
     <button id="btn-start">게임 시작</button>
     <button id="btn-admin">문제 관리</button>
   </div>
-
-  <!-- 게임 -->
   <div class="container" id="game-area" style="display:none;flex-direction:column;">
     <div id="question"></div>
     <div id="answer-area"></div>
     <div id="letter-pool"></div>
-    <button id="btn-exit" style="margin-top:3rem;">끝내기</button>
+    <button id="btn-exit" style="margin-top:2.4rem">끝내기</button>
   </div>
-
-  <!-- 관리자 -->
-  <div id="admin-area" style="display:none;">
-    <h2 class="title">문제 관리</h2>
+  <div id="admin-area">
+    <h2 style="text-align:center;font-size:2.8rem">문제 관리</h2>
     <form id="problem-form">
-      <input type="text" id="inp-question" placeholder="문제(질문)" required />
-      <input type="text" id="inp-answer"   placeholder="정답(단어)" required />
+      <input type="text" id="inp-question" placeholder="문제(질문)" required>
+      <input type="text" id="inp-answer" placeholder="정답(단어)" required>
       <button type="submit">저장</button>
       <button type="button" id="btn-back">홈으로</button>
     </form>
     <ul id="problem-list"></ul>
   </div>
-
-  <!-- 모달 -->
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <div id="modal-text">정답!</div>
-      <button id="modal-btn">확인</button>
-    </div>
-  </div>
-
-  <footer><small>© 2025 모아모아 맞추기</small></footer>
-
-  <!-- 분리한 스크립트 -->
-  <script src="app.js"></script>
+  <div id="modal" class="modal"><div class="modal-content"><div id="modal-text">정답!</div><button id="modal-btn" class="small-btn" style="background:var(--yellow);margin-top:1.6rem">확인</button></div></div>
+  <footer><small style="font-size:1.3rem">© 2025 모아모아 맞추기</small></footer>
+<script>
+(()=>{
+  const KEY='moamoaProblems';
+  const $=id=>document.getElementById(id);
+  /* dom */
+  const home=$('home'),start=$('btn-start'),adminBtn=$('btn-admin'),back=$('btn-back'),exit=$('btn-exit');
+  const game=$('game-area'),q=$('question'),ans=$('answer-area'),pool=$('letter-pool');
+  const admin=$('admin-area'),form=$('problem-form'),qIn=$('inp-question'),aIn=$('inp-answer'),list=$('problem-list');
+  const modal=$('modal'),mText=$('modal-text'),mBtn=$('modal-btn');
+  /* storage */
+  const load=()=>JSON.parse(localStorage.getItem(KEY)||'[]').slice(0,5);
+  const save=d=>localStorage.setItem(KEY,JSON.stringify(d.slice(0,5)));
+  /* list */
+  let editIdx=-1;
+  const renderList=()=>{
+    const arr=load();list.innerHTML='';
+    arr.forEach((p,i)=>{
+      const li=document.createElement('li');li.innerHTML=`<span>${i+1}. ${p.q} → <strong>${p.a}</strong></span>`;
+      const grp=document.createElement('div');grp.className='btn-group';
+      const eBtn=document.createElement('button');eBtn.textContent='수정';eBtn.className='small-btn edit-btn';eBtn.onclick=()=>{editIdx=i;qIn.value=p.q;aIn.value=p.a;};
+      const dBtn=document.createElement('button');dBtn.textContent='삭제';dBtn.className='small-btn delete-btn';dBtn.onclick=()=>{const ar=load();ar.splice(i,1);save(ar);renderList();};
+      grp.append(eBtn,dBtn);li.appendChild(grp);list.appendChild(li);
+    });
+  };
+  form.onsubmit=e=>{
+    e.preventDefault();const qv=qIn.value.trim(),av=aIn.value.trim();if(!qv||!av)return;const arr=load();
+    if(editIdx>-1){arr[editIdx]={q:qv,a:av};editIdx=-1;}else{if(arr.length>=5){alert('최대 5문제');return;}arr.push({q:qv,a:av});}
+    save(arr);form.reset();renderList();
+  };
+  /* navigation */
+  const showHome=()=>{home.style.display='flex';game.style.display='none';admin.style.display='none';form.reset();editIdx=-1;};
+  const showAdmin=()=>{home.style.display='none';game.style.display='none';admin.style.display='block';renderList();};
+  start.onclick=()=>{if(load().length===0){alert('문제를 먼저 등록!');return;}home.style.display='none';admin.style.display='none';game.style.display='flex';idx=-1;next();};
+  adminBtn.onclick=showAdmin;back.onclick=showHome;exit.onclick=showHome;
+  /* game */
+  let idx=-1,prob=null,correct=false;
+  const kor='가나다라마바사아자차카타파하거너더러머버서어저처커터퍼허';
+  mBtn.onclick=()=>{modal.classList.remove('show');correct?next():draw();};
+  const next=()=>{const arr=load();if(arr.length===0)return;idx=(idx+1)%arr.length;prob={q:arr[idx].q,a:arr[idx].a.replace(/\s+/g,'')};draw();};
+  const draw=()=>{
+    q.textContent=prob.q;ans.style.width=`${Math.round(prob.a.length*6*1.5)}rem`;ans.innerHTML='';pool.innerHTML='';
+    const extras=Array.from({length:3},()=>kor[Math.floor(Math.random()*kor.length)]);
+    const letters=[...prob.a,...extras].sort(()=>Math.random()-0.5);
+    letters.forEach(ch=>{const d=document.createElement('div');d.textContent=ch;d.className='letter';pool.appendChild(d);});
+    const grp={name:'letters',pull:true,put:true};
+    Sortable.create(pool,{group:grp,animation:150});
+    Sortable.create(ans,{group:grp,animation:150,onAdd:check,onUpdate:check});
+  };
+  const check=()=>{
+    const built=[...ans.children].map(e=>e.textContent).join('');if(built.length!==prob.a.length)return;
+    if(built===prob.a){mText.textContent='정답!';correct=true;}else{mText.textContent='오답! 다시 도전';correct=false;}
+    modal.classList.add('show');
+  };
+})();
+</script>
 </body>
 </html>
