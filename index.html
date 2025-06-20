@@ -77,59 +77,149 @@
 (()=>{
   const KEY='moamoaProblems';
   const $=id=>document.getElementById(id);
-  /* dom */
-  const home=$('home'),start=$('btn-start'),adminBtn=$('btn-admin'),back=$('btn-back'),exit=$('btn-exit');
-  const game=$('game-area'),q=$('question'),ans=$('answer-area'),pool=$('letter-pool');
-  const admin=$('admin-area'),form=$('problem-form'),qIn=$('inp-question'),aIn=$('inp-answer'),list=$('problem-list');
-  const modal=$('modal'),mText=$('modal-text'),mBtn=$('modal-btn');
-  /* storage */
+
+  /* ========== DOM ==========*/
+  const home=$('home');
+  const startBtn=$('btn-start');
+  const adminBtn=$('btn-admin');
+  const backBtn=$('btn-back');
+  const exitBtn=$('btn-exit');
+
+  const game=$('game-area');
+  const qEl=$('question');
+  const ansArea=$('answer-area');
+  const poolArea=$('letter-pool');
+
+  const admin=$('admin-area');
+  const form=$('problem-form');
+  const qInput=$('inp-question');
+  const aInput=$('inp-answer');
+  const listUL=$('problem-list');
+
+  const modal=$('modal');
+  const modalText=$('modal-text');
+  const modalBtn=$('modal-btn');
+  const pwdBtn=$('btn-change-pwd');
+
+  /* ========== Storage =========*/
   const load=()=>JSON.parse(localStorage.getItem(KEY)||'[]').slice(0,5);
-  const save=d=>localStorage.setItem(KEY,JSON.stringify(d.slice(0,5)));
-  /* list */
+  const save=arr=>localStorage.setItem(KEY,JSON.stringify(arr.slice(0,5)));
+
+  /* ========== Admin List =========*/
   let editIdx=-1;
-  const renderList=()=>{
-    const arr=load();list.innerHTML='';
+  function renderList(){
+    const arr=load();
+    listUL.innerHTML='';
     arr.forEach((p,i)=>{
-      const li=document.createElement('li');li.innerHTML=`<span>${i+1}. ${p.q} → <strong>${p.a}</strong></span>`;
-      const grp=document.createElement('div');grp.className='btn-group';
-      const eBtn=document.createElement('button');eBtn.textContent='수정';eBtn.className='small-btn edit-btn';eBtn.onclick=()=>{editIdx=i;qIn.value=p.q;aIn.value=p.a;};
-      const dBtn=document.createElement('button');dBtn.textContent='삭제';dBtn.className='small-btn delete-btn';dBtn.onclick=()=>{const ar=load();ar.splice(i,1);save(ar);renderList();};
-      grp.append(eBtn,dBtn);li.appendChild(grp);list.appendChild(li);
+      const li=document.createElement('li');
+      li.innerHTML=`<span>${i+1}. ${p.q} → <strong>${p.a}</strong></span>`;
+      const group=document.createElement('div');group.className='btn-group';
+      const e=document.createElement('button');e.textContent='수정';e.className='small-btn edit-btn';e.onclick=()=>{editIdx=i;qInput.value=p.q;aInput.value=p.a;};
+      const d=document.createElement('button');d.textContent='삭제';d.className='small-btn delete-btn';d.onclick=()=>{const ar=load();ar.splice(i,1);save(ar);renderList();};
+      group.append(e,d);li.appendChild(group);listUL.appendChild(li);
     });
-  };
+  }
+
   form.onsubmit=e=>{
-    e.preventDefault();const qv=qIn.value.trim(),av=aIn.value.trim();if(!qv||!av)return;const arr=load();
-    if(editIdx>-1){arr[editIdx]={q:qv,a:av};editIdx=-1;}else{if(arr.length>=5){alert('최대 5문제');return;}arr.push({q:qv,a:av});}
-    save(arr);form.reset();renderList();
+    e.preventDefault();
+    const qv=qInput.value.trim();
+    const av=aInput.value.trim();
+    if(!qv||!av)return;
+    const arr=load();
+    if(editIdx>-1){arr[editIdx]={q:qv,a:av};editIdx=-1;}else{
+      if(arr.length>=5){alert('최대 5문제');return;}
+      arr.push({q:qv,a:av});
+    }
+    save(arr);
+    form.reset();
+    renderList();
   };
-  /* navigation */
-  let idx=-1,prob=null,correct=false;  // 변수 선언을 앞당겨 ReferenceError 방지
-  start.onclick=()=>{
-    if(load().length===0){alert('문제를 먼저 등록!');return;}
-    home.style.display='none';admin.style.display='none';game.style.display='flex';idx=-1;next();
+
+  /* ========== Navigation =========*/
+  function showHome(){
+    home.style.display='flex';
+    admin.style.display='none';
+    game.style.display='none';
+    form.reset();editIdx=-1;
+  }
+  function showAdmin(){
+    home.style.display='none';
+    admin.style.display='block';
+    game.style.display='none';
+    renderList();
+  }
+
+  /* ========== Password =========*/
+  function requestAdminAccess(){
+    const stored=localStorage.getItem('adminPwd');
+    if(!stored){
+      const set=prompt('처음 접속입니다! 새 비밀번호를 설정하세요:');
+      if(set){localStorage.setItem('adminPwd',set);alert('비밀번호 설정 완료');showAdmin();}
+      return;
+    }
+    const inp=prompt('비밀번호를 입력하세요:');
+    if(inp===stored){showAdmin();}
+    else{alert('비밀번호가 틀렸습니다');}
+  }
+
+  pwdBtn.onclick=()=>{
+    const old=localStorage.getItem('adminPwd');
+    if(!old){alert('아직 비밀번호가 설정되지 않았습니다');return;}
+    const check=prompt('현재 비밀번호를 입력하세요:');
+    if(check!==old){alert('비밀번호가 틀렸습니다');return;}
+    const n=prompt('새 비밀번호를 입력하세요:');
+    if(n){localStorage.setItem('adminPwd',n);alert('변경 완료');}
   };
-  adminBtn.onclick=requestAdminAccess;
-  back.onclick=showHome;
-  exit.onclick=showHome;
-  /* game */
-  let idx=-1,prob=null,correct=false;
+
+  /* ========== Game =========*/
+  let index=-1,current=null,correct=false;
   const kor='가나다라마바사아자차카타파하거너더러머버서어저처커터퍼허';
-  mBtn.onclick=()=>{modal.classList.remove('show');correct?next():draw();};
-  const next=()=>{const arr=load();if(arr.length===0)return;idx=(idx+1)%arr.length;prob={q:arr[idx].q,a:arr[idx].a.replace(/\s+/g,'')};draw();};
-  const draw=()=>{
-    q.textContent=prob.q;ans.style.width=`${Math.round(prob.a.length*6*1.5)}rem`;ans.innerHTML='';pool.innerHTML='';
+
+  function startGame(){
+    if(load().length===0){alert('먼저 문제를 등록하세요!');return;}
+    home.style.display='none';admin.style.display='none';game.style.display='flex';
+    index=-1;nextProblem();
+  }
+
+  function nextProblem(){
+    const arr=load();
+    if(arr.length===0)return;
+    index=(index+1)%arr.length;
+    current={q:arr[index].q,a:arr[index].a.replace(/\s+/g,'')};
+    drawProblem();
+  }
+
+  function drawProblem(){
+    qEl.textContent=current.q;
+    ansArea.style.width=`${Math.round(current.a.length*6*1.5)}rem`;
+    ansArea.innerHTML='';poolArea.innerHTML='';
     const extras=Array.from({length:3},()=>kor[Math.floor(Math.random()*kor.length)]);
-    const letters=[...prob.a,...extras].sort(()=>Math.random()-0.5);
-    letters.forEach(ch=>{const d=document.createElement('div');d.textContent=ch;d.className='letter';pool.appendChild(d);});
+    const letters=[...current.a,...extras].sort(()=>Math.random()-0.5);
+    letters.forEach(ch=>{
+      const d=document.createElement('div');d.textContent=ch;d.className='letter';poolArea.appendChild(d);});
     const grp={name:'letters',pull:true,put:true};
-    Sortable.create(pool,{group:grp,animation:150});
-    Sortable.create(ans,{group:grp,animation:150,onAdd:check,onUpdate:check});
-  };
-  const check=()=>{
-    const built=[...ans.children].map(e=>e.textContent).join('');if(built.length!==prob.a.length)return;
-    if(built===prob.a){mText.textContent='정답!';correct=true;}else{mText.textContent='오답! 다시 도전';correct=false;}
+    Sortable.create(poolArea,{group:grp,animation:150});
+    Sortable.create(ansArea,{group:grp,animation:150,onAdd:checkAnswer,onUpdate:checkAnswer});
+  }
+
+  function checkAnswer(){
+    const built=[...ansArea.children].map(el=>el.textContent).join('');
+    if(built.length!==current.a.length)return;
+    if(built===current.a){modalText.textContent='정답!';correct=true;}
+    else{modalText.textContent='오답! 다시 도전';correct=false;}
     modal.classList.add('show');
-  };
+  }
+
+  modalBtn.onclick=()=>{modal.classList.remove('show');correct?nextProblem():drawProblem();};
+
+  /* ========== Bind =========*/
+  startBtn.onclick=startGame;
+  adminBtn.onclick=requestAdminAccess;
+  backBtn.onclick=showHome;
+  exitBtn.onclick=showHome;
+
+  /* init */
+  showHome();
 })();
 </script>
 </body>
