@@ -58,6 +58,9 @@
   </div>
   <div id="admin-area">
     <h2 style="text-align:center;font-size:2.8rem">문제 관리</h2>
+    <div style="text-align:center;margin-bottom:1rem;">
+      <button id="btn-change-pwd" class="small-btn edit-btn" style="background:linear-gradient(135deg,#F9D423,#F83600)">비밀번호 변경</button>
+    </div>
     <form id="problem-form" class="admin-form">
       <input type="text" id="inp-question" placeholder="문제(질문)" required>
       <input type="text" id="inp-answer" placeholder="정답(단어)" required>
@@ -103,7 +106,23 @@
   const showHome=()=>{home.style.display='flex';game.style.display='none';admin.style.display='none';form.reset();editIdx=-1;};
   const showAdmin=()=>{home.style.display='none';game.style.display='none';admin.style.display='block';renderList();};
   start.onclick=()=>{if(load().length===0){alert('문제를 먼저 등록!');return;}home.style.display='none';admin.style.display='none';game.style.display='flex';idx=-1;next();};
-  adminBtn.onclick=showAdmin;back.onclick=showHome;exit.onclick=showHome;
+  adminBtn.onclick=()=>{requestAdminAccess();};back.onclick=showHome;exit.onclick=showHome;
+  const changePwdBtn=$('btn-change-pwd');
+  changePwdBtn.addEventListener('click',()=>{
+    const newPwd=prompt('새 비밀번호를 입력하세요:');
+    if(newPwd){localStorage.setItem('adminPwd',newPwd);alert('비밀번호가 변경되었습니다.');}
+  });
+  /* ==== 비밀번호 로직 ==== */
+  function requestAdminAccess(){
+    const pwd=localStorage.getItem('adminPwd');
+    if(!pwd){
+      const set=prompt('처음 접속입니다! 새 비밀번호를 설정하세요:');
+      if(!set)return;localStorage.setItem('adminPwd',set);alert('비밀번호 설정 완료');showAdmin();
+    }else{
+      const inp=prompt('비밀번호를 입력하세요:');
+      if(inp===pwd){showAdmin();}else{alert('비밀번호가 틀렸습니다');}
+    }
+  }
   /* game */
   let idx=-1,prob=null,correct=false;
   const kor='가나다라마바사아자차카타파하거너더러머버서어저처커터퍼허';
